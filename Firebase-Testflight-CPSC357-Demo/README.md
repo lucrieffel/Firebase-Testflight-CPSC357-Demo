@@ -1,70 +1,50 @@
 # Firebase-Testflight-CPSC357-Demo
 
 <div align="center">
-<img src="Assets.xcassets/AppIcon.appiconset/AppIcon.png" width="120" alt="Firebase iOS Template Logo">
+<p>
+  <img src="images/Firebase-Logo.jpeg" width="40" alt="Firebase Logo">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="images/Testflight-logo.jpeg" width="40" alt="TestFlight Logo">
+</p>
+
+<p><em>A SwiftUI template for Firebase apps with TestFlight integration</em></p>
 </div>
 
 ## 📱 Overview
 
-A comprehensive open-source template for developing full-stack iOS applications with Firebase. This template provides a solid foundation for building iOS applications with authentication, real-time database, cloud storage, and TestFlight integration.
+A comprehensive open-source template for developing full-stack iOS applications with Firebase, featuring authentication, real-time database, cloud storage, and TestFlight integration.
 
 ## ✨ Features
 
 - **Authentication**
-  - Complete Firebase Authentication implementation
-  - Login with email/password
-  - Registration with email verification
-  - Password reset functionality
-  - Profile management and updates
-  - Secure authentication flow
+  - Firebase Authentication with email/password
+  - Registration & reset password
+  - Authentication Error Handling
 
 - **Navigation & Routing**
-  - Custom navigation router for seamless screen transitions
-  - Separation of authenticated and unauthenticated flows
-  - Hierarchical navigation structure
+  - Custom router for seamless navigation
+  - Separation of authenticated/unauthenticated flows
   - Deep linking support
 
 - **Architecture**
-  - MVVM (Model-View-ViewModel) architecture
-  - Clean separation of concerns
-  - SwiftUI integration
-  - Observable view models for reactive UI updates
-  - Dependency injection for better testability
+  - MVVM with SwiftUI integration
+  - Observable view models and dependency injection
+  - AppEnvironment singleton to manage all ViewModels
 
 - **Firebase Integration**
-  - Firebase Firestore database integration
-  - Real-time data updates
-  - Offline data persistence
-  - Cloud Storage for file uploads
+  - Firestore database
+  - Authentication
 
-- **UI Components**
-  - Reusable custom UI components
-  - Responsive layouts that work across device sizes
-  - Dark/light mode support
-  - Accessibility considerations
-
-- **TestFlight Ready**
-  - Ready to deploy to TestFlight for beta testing
-  - Configuration for beta distribution
-  - Version and build number management
-
-- **Network Handling**
-  - Network connectivity monitoring
-  - Graceful offline mode handling
-  - Error handling and user feedback
+- **UI Components & Network**
+  - Reusable components with dark/light mode support
+  - Network monitoring with offline handling and dynamic banners
 
 ## 🛠️ Technologies
 
-- **Swift** - Primary programming language
-- **SwiftUI** - UI framework for building the user interface
-- **Firebase**
-  - Authentication - User management and auth flows
-  - Firestore - NoSQL cloud database
-  - Storage - File storage solution
-  - Analytics - Usage tracking (optional)
-- **Swift Data** - Local data persistence
+- **Swift** & **SwiftUI** - Core development
+- **Firebase** - Authentication, Firestore, Storage, Analytics
+- **Swift Data** - Local persistence
 - **Combine** - Reactive programming
-
 
 ## 📋 Requirements
 
@@ -72,7 +52,6 @@ A comprehensive open-source template for developing full-stack iOS applications 
 - Xcode 15.0+
 - Swift 5.9+
 - Firebase (Google) account
-- CocoaPods or Swift Package Manager
 
 ## 🚀 Getting Started
 
@@ -93,35 +72,48 @@ A comprehensive open-source template for developing full-stack iOS applications 
    - Create a new Firebase project at [Firebase Console](https://console.firebase.google.com)
    - Add an iOS app to your Firebase project
    - Download your `GoogleService-Info.plist` and add it to your project
-   - Enable the authentication methods you want to use
-   - Set up Firestore/Realtime Database as needed
+   - Enable authentication methods (email/password supported by default)
+   - Set up Firestore/Realtime Database rules
 
-
-3. Open the `.xcworkspace` file to launch XCode and run the project
+3. Open the `.xcworkspace` file to launch Xcode and run the project
 
 ## 🏗️ Project Structure
 
 ```
 Firebase-iOS-Template/
-├── App/                    # App entry point and configuration
+├── App/                    # App entry point and AppEnvironment
 ├── Model/                  # Data models and structures
 ├── ViewModels/             # ViewModels for business logic
-├── Views/                  # SwiftUI views organized by feature
-│   ├── Auth/               # Authentication-related views
+├── Views/                  # SwiftUI views by feature
+│   ├── Auth/               # Authentication views
 │   ├── Home/               # Main app views
 │   ├── Community/          # Community-related views
-├── NavigationRouter/       # Custom navigation system (helpful for routing notifications to views)
+├── NavigationRouter/       # Custom navigation system
 ├── Components/             # Reusable UI components
-├── Utils/                  # Utility functions and extensions
-├── NetworkMonitor/         # Network connectivity monitoring
+├── Utils/                  # Utility functions
+├── NetworkMonitor/         # Network monitoring
 ├── Notifications/          # Push notification handling
 ```
 
 ## 🧩 Usage
 
+### AppEnvironment Singleton
+
+The template uses a shared AppEnvironment instance to manage all ViewModels:
+
+```swift
+// Access any ViewModel from anywhere in the app
+AppEnvironment.shared.authViewModel.signIn(email: email, password: password)
+
+// Add new ViewModels to the shared environment
+@Published var newFeatureViewModel = NewFeatureViewModel()
+```
+
+This pattern allows for clean dependency injection and state sharing across the app.
+
 ### Authentication
 
-The template provides a complete authentication flow including:
+The template provides a complete authentication flow:
 
 ```swift
 // Login example
@@ -134,38 +126,77 @@ authViewModel.register(email: email, password: password, name: name)
 authViewModel.resetPassword(email: email)
 ```
 
-### Navigation Router
+### Navigation Router System
 
-The template uses a custom router for navigation:
+The template features a powerful custom navigation system:
+
 ```swift
 // Navigate to a view within the authenticated flow
 router.navigate(to: .home)
+
+// Navigate with parameters
+router.navigate(to: .communityDetail(id: "123"))
+
+// Pop to previous view
+router.dismiss()
 ```
+
+**Router Types:**
+- `AuthorizedRouter` - Navigation when user is logged in
+- `UnAuthorizedRouter` - Navigation for auth flows (login, register)
+
+**Key Benefits:**
+- Type-safe navigation with compile-time checking
+- Handles complex navigation stacks
+- Supports push notifications routing
+- Manages authentication state transitions
+
+### App Navigation Flow
+
+The application uses a structured navigation approach:
+
+1. `Firebase_Testflight_CPSC357_DemoApp.swift` - Entry point that initializes Firebase
+2. `RootView` - Root view container that determines auth state and routes notifications 
+3. `AuthorizedRouter` - Manages navigation for authenticated users
+4. `UnAuthorizedRouter` - Handles login/registration flows
+
+```swift
+// App entry point initializes Firebase and sets up the root view
+@main
+struct MyApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
+    var body: some Scene {
+        WindowGroup {
+            RootView() // Determines auth state and routes accordingly
+        }
+    }
+}
+```
+
+This architecture ensures proper navigation based on authentication state and provides a clean separation of concerns.
 
 ## 🎨 Customization
 
 ### Theme and Styling
 
-Modify the color schemes and styles in the `ColorType.swift` file to match your App's design identity.
+Modify the color schemes in `ColorType.swift` to match your app's design identity.
 
 ### Firebase Configuration
 
-Edit the `AppDelegate.swift` file to configure Firebase services based on your requirements.
-
-Follow the instructions from Firebase when you create a new project to ensure you have the correct setup:
-- Make sure to copy over `GoogleService-Info.plist` to your project root
-- Add the Firebase SDK by adding package dependencies in Swift
-- In your app entry point, add the app delegate
+1. Edit `AppDelegate.swift` to configure Firebase services
+2. Follow Firebase setup instructions:
+   - Copy `GoogleService-Info.plist` to your project root
+   - Add Firebase SDK via Swift Package Manager
+   - Configure app delegate for initialization
 
 ## 🛫 TestFlight Distribution
 
-The template is configured for easy TestFlight distribution:
-
 1. Add a compatible App Icon according to the [iOS guidelines](https://developer.apple.com/design/human-interface-guidelines/app-icons)
-2. Add the appropriate signing & capabilities (notifications, healthkit, etc.)
-3. Modify your Info.plist with the required iOS usage descriptions
-4. Navigate to Product > Archive and distribute your app to App Store Connect
-   - Note that you need a valid Apple Developer subscription to deploy to TestFlight and use App Store Connect
+2. Add appropriate signing & capabilities (Notifications, HealthKit, etc.)
+3. Update Info.plist with required usage descriptions
+4. Navigate to Product > Archive and distribute to App Store Connect
+   - Requires valid Apple Developer subscription to deploy to TestFlight
 
 ## 🔥 Firebase Project Information
 
@@ -173,7 +204,6 @@ For security reasons, this template does not include actual Firebase credentials
 
 ## 👥 Best Practices
 
-- Keep sensitive information out of your repository (use `.gitignore` for `GoogleService-Info.plist`)
 - Use environment variables for API keys when possible
 - Follow the established MVVM pattern for new features
 - Write tests for ViewModels and critical app logic
