@@ -21,7 +21,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     // Welcome section
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Welcome Back!")
+                        Text("Welcome Back!\(AppEnvironment.shared.authViewModel.currentUser?.fullname ?? "User")")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         
