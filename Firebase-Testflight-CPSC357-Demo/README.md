@@ -36,8 +36,6 @@ A comprehensive open-source template for developing full-stack iOS applications 
   - Real-time data updates
   - Offline data persistence
   - Cloud Storage for file uploads
-  - Firebase Analytics for usage tracking
-  - Push notification setup with Firebase Cloud Messaging
 
 - **UI Components**
   - Reusable custom UI components
@@ -63,66 +61,17 @@ A comprehensive open-source template for developing full-stack iOS applications 
   - Authentication - User management and auth flows
   - Firestore - NoSQL cloud database
   - Storage - File storage solution
-  - Analytics - User behavior tracking
-  - Cloud Messaging - Push notifications
+  - Analytics - Usage tracking (optional)
 - **Swift Data** - Local data persistence
 - **Combine** - Reactive programming
 
-## 🔒 App Privacy & Permissions
-
-The template may require access to:
-- Push Notifications (for alerts and messaging)
-- Photo Library (for avatar uploads)
-- Camera (for profile pictures)
-- Location Services (optional, for location-based features)
-
-## 📱 App Showcase
-
-### 📸 Screenshots
-
-<div align="center">
-<table>
-  <tr>
-    <td><img src="Screenshots/Auth/LoginView.png" width="200" alt="Login Screen"></td>
-    <td><img src="Screenshots/Auth/RegistrationView.png" width="200" alt="Registration"></td>
-    <td><img src="Screenshots/Home/HomeView.png" width="200" alt="Home"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Login Screen</b></td>
-    <td align="center"><b>Registration</b></td>
-    <td align="center"><b>Home Screen</b></td>
-  </tr>
-  <tr>
-    <td><img src="Screenshots/Profile/ProfileView.png" width="200" alt="Profile"></td>
-    <td><img src="Screenshots/Auth/ResetPasswordView.png" width="200" alt="Password Reset"></td>
-    <td><img src="Screenshots/Community/CommunityView.png" width="200" alt="Community"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Profile</b></td>
-    <td align="center"><b>Password Reset</b></td>
-    <td align="center"><b>Community</b></td>
-  </tr>
-</table>
-</div>
-
-### 🔄 Interactive Features
-
-<div align="center">
-<table>
-  <tr>
-    <td width="33%"><b>Navigation Flow</b><br><img src="Screenshots/Navigation/NavigationFlow.gif" width="200" alt="Navigation Flow"></td>
-    <td width="33%"><b>Authentication</b><br><img src="Screenshots/Auth/AuthFlow.gif" width="200" alt="Authentication Flow"></td>
-    <td width="33%"><b>Real-time Updates</b><br><img src="Screenshots/Realtime/RealtimeUpdates.gif" width="200" alt="Realtime Updates"></td>
-  </tr>
-</table>
-</div>
 
 ## 📋 Requirements
 
 - iOS 16.0+
 - Xcode 15.0+
 - Swift 5.9+
-- Firebase account
+- Firebase (Google) account
 - CocoaPods or Swift Package Manager
 
 ## 🚀 Getting Started
@@ -130,8 +79,7 @@ The template may require access to:
 ### Prerequisites
 
 - Xcode 15+ installed
-- Swift Package Manager or CocoaPods
-- Firebase account (for backend services)
+- Firebase (Google) account
 
 ### Installation
 
@@ -148,12 +96,8 @@ The template may require access to:
    - Enable the authentication methods you want to use
    - Set up Firestore/Realtime Database as needed
 
-3. Install dependencies (if using CocoaPods)
-   ```bash
-   pod install
-   ```
 
-4. Open the `.xcworkspace` file and run the project
+3. Open the `.xcworkspace` file to launch XCode and run the project
 
 ## 🏗️ Project Structure
 
@@ -166,7 +110,7 @@ Firebase-iOS-Template/
 │   ├── Auth/               # Authentication-related views
 │   ├── Home/               # Main app views
 │   ├── Community/          # Community-related views
-├── NavigationRouter/       # Custom navigation system
+├── NavigationRouter/       # Custom navigation system (helpful for routing notifications to views)
 ├── Components/             # Reusable UI components
 ├── Utils/                  # Utility functions and extensions
 ├── NetworkMonitor/         # Network connectivity monitoring
@@ -190,45 +134,38 @@ authViewModel.register(email: email, password: password, name: name)
 authViewModel.resetPassword(email: email)
 ```
 
-### Setting Up Firebase
-
-Before using this template, you'll need to:
-
-1. Replace the included `GoogleService-Info.plist` with your own
-2. Configure Firebase Authentication methods in Firebase Console
-3. Set up your Firestore database rules
-4. Configure Storage rules if you're using Firebase Storage
-
-### Navigation
+### Navigation Router
 
 The template uses a custom router for navigation:
-
 ```swift
 // Navigate to a view within the authenticated flow
 router.navigate(to: .home)
-
-// Navigate with parameters
-router.navigate(to: .userProfile(userId: "123"))
 ```
 
 ## 🎨 Customization
 
 ### Theme and Styling
 
-Modify the color schemes and styles in the `ColorType.swift` file to match your brand identity.
+Modify the color schemes and styles in the `ColorType.swift` file to match your App's design identity.
 
 ### Firebase Configuration
 
 Edit the `AppDelegate.swift` file to configure Firebase services based on your requirements.
 
+Follow the instructions from Firebase when you create a new project to ensure you have the correct setup:
+- Make sure to copy over `GoogleService-Info.plist` to your project root
+- Add the Firebase SDK by adding package dependencies in Swift
+- In your app entry point, add the app delegate
+
 ## 🛫 TestFlight Distribution
 
 The template is configured for easy TestFlight distribution:
 
-1. Configure your app in App Store Connect
-2. Set up the appropriate provisioning profiles
-3. Build and archive your app
-4. Upload to TestFlight via Xcode or Transporter
+1. Add a compatible App Icon according to the [iOS guidelines](https://developer.apple.com/design/human-interface-guidelines/app-icons)
+2. Add the appropriate signing & capabilities (notifications, healthkit, etc.)
+3. Modify your Info.plist with the required iOS usage descriptions
+4. Navigate to Product > Archive and distribute your app to App Store Connect
+   - Note that you need a valid Apple Developer subscription to deploy to TestFlight and use App Store Connect
 
 ## 🔥 Firebase Project Information
 
@@ -239,13 +176,13 @@ For security reasons, this template does not include actual Firebase credentials
 - Keep sensitive information out of your repository (use `.gitignore` for `GoogleService-Info.plist`)
 - Use environment variables for API keys when possible
 - Follow the established MVVM pattern for new features
-- Write tests for ViewModels and critical business logic
+- Write tests for ViewModels and critical app logic
 - Document your code for team members
 
 ## 👥 Contributors
 
-- Your Name
-- Contributors welcome!
+- Luc Rieffel
+- More contributors welcome!
 
 ## 📄 License
 
