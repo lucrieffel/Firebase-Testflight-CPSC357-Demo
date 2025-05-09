@@ -7,7 +7,7 @@
 
 import Foundation
 import SwiftData
-//import Firebase //uncomment if you want to use the firebase timestamp type
+import Firebase //uncomment if you want to use the firebase timestamp type
 
 struct User: Identifiable, Codable, Hashable {
     var id: String { userID }
@@ -42,16 +42,28 @@ struct User: Identifiable, Codable, Hashable {
             let fullname = data["fullname"] as? String,
             let email = data["email"] as? String,
             let userType = data["userType"] as? String,
-            let dateCreated = data["dateCreated"] as? Date
+            let points = data["points"] as? Int
         else {
             throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid user data"])
         }
+        
+        // Handle Firebase Timestamp conversion
+        let dateCreated: Date
+        if let timestamp = data["dateCreated"] as? Timestamp {
+            dateCreated = timestamp.dateValue()
+        } else if let date = data["dateCreated"] as? Date {
+            dateCreated = date
+        } else {
+            dateCreated = Date()
+            print("WARNING: Could not parse dateCreated field, using current date instead")
+        }
+        
         self.userID = userID
         self.fullname = fullname
         self.email = email
         self.userType = UserType(rawValue: userType)
         self.dateCreated = dateCreated
-        self.points = 0
+        self.points = points
     }
 }
 

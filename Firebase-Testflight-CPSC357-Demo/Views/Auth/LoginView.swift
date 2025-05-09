@@ -58,6 +58,13 @@ struct LoginView: View {
                 .padding(.top, 12)
 
                 Button {
+                    // Check network connectivity first
+                    if !NetworkMonitor.shared.isConnected {
+                        AppEnvironment.shared.errorMessage = "Cannot sign in while offline. Please check your connection and try again."
+                        AppEnvironment.shared.showNetworkError = true
+                        return
+                    }
+                    
                     isLoading = true
                     Task {
                         do {
@@ -71,9 +78,12 @@ struct LoginView: View {
                             if AppEnvironment.shared.authViewModel.userSession != nil && AppEnvironment.shared.authViewModel.currentUser != nil {
                                 UserData.shared.appStateEnum = .authorized
                             }
+                            isLoading = false
+                            router.dismiss()
                         } catch {
                             // Error is already handled in the AuthViewModel
                             // Just need to ensure loading state is reset here too
+                            print("error: \(error)")
                             isLoading = false
                         }
                     }
@@ -104,33 +114,33 @@ struct LoginView: View {
                 }
                 
             }
-//            .alert(isPresented: .init(
-//                get: { AppEnvironment.shared.authViewModel.showAlert },
-//                set: { AppEnvironment.shared.authViewModel.showAlert = $0 }
-//            )) {
-//                if AppEnvironment.shared.authViewModel.authError == .userNotFound {
-//                    return Alert(
-//                        title: Text(AppEnvironment.shared.authViewModel.authError?.title ?? "Account Not Found"),
-//                        message: Text(AppEnvironment.shared.authViewModel.authError?.description ?? ""),
-//                        primaryButton: .default(Text("Create Account")) {
-//                            showRegistration = true
-//                        },
-//                        secondaryButton: .cancel()
-//                    )
-//                } else if AppEnvironment.shared.authViewModel.authError == .malformedCredential {
-//                    return Alert(
-//                        title: Text(AppEnvironment.shared.authViewModel.authError?.title ?? "Invalid Credential"),
-//                        message: Text(AppEnvironment.shared.authViewModel.authError?.description ?? "The supplied auth credential is malformed or has expired."),
-//                        dismissButton: .default(Text("OK"))
-//                    )
-//                } else {
-//                    return Alert(
-//                        title: Text(AppEnvironment.shared.authViewModel.authError?.title ?? "Authentication Error"),
-//                        message: Text(AppEnvironment.shared.authViewModel.authError?.description ?? "An unknown error occurred."),
-//                        dismissButton: .default(Text("OK"))
-//                    )
-//                }
-//            }
+            .alert(isPresented: .init(
+                get: { AppEnvironment.shared.authViewModel.showAlert },
+                set: { AppEnvironment.shared.authViewModel.showAlert = $0 }
+            )) {
+                if AppEnvironment.shared.authViewModel.authError == .userNotFound {
+                    return Alert(
+                        title: Text(AppEnvironment.shared.authViewModel.authError?.title ?? "Account Not Found"),
+                        message: Text(AppEnvironment.shared.authViewModel.authError?.description ?? ""),
+                        primaryButton: .default(Text("Create Account")) {
+                            showRegistration = true
+                        },
+                        secondaryButton: .cancel()
+                    )
+                } else if AppEnvironment.shared.authViewModel.authError == .malformedCredential {
+                    return Alert(
+                        title: Text(AppEnvironment.shared.authViewModel.authError?.title ?? "Invalid Credential"),
+                        message: Text(AppEnvironment.shared.authViewModel.authError?.description ?? "The supplied auth credential is malformed or has expired."),
+                        dismissButton: .default(Text("OK"))
+                    )
+                } else {
+                    return Alert(
+                        title: Text(AppEnvironment.shared.authViewModel.authError?.title ?? "Authentication Error"),
+                        message: Text(AppEnvironment.shared.authViewModel.authError?.description ?? "An unknown error occurred."),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
+            }
             .overlay(
                 Group {
                     if isLoading {
@@ -140,6 +150,14 @@ struct LoginView: View {
                     }
                 }
             )
+            .onAppear {
+                // Check network connectivity when view appears
+                if !NetworkMonitor.shared.isConnected {
+                    // Display warning about offline authentication limitations
+                    AppEnvironment.shared.errorMessage = "Login requires a stable internet connection."
+                    AppEnvironment.shared.showNetworkError = true
+                }
+            }
     }
 }
 

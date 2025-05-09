@@ -10,9 +10,12 @@ import SwiftUI
 import FirebaseAuth
 import Firebase
 
+@MainActor
 class AuthViewModel: ObservableObject {
     @Published var userSession: FirebaseAuth.User?
     @Published var currentUser: User?
+    @Published var authError: AuthError?
+    @Published var showAlert = false
     
     @State private var isLoading = false //state variable for loading animation
     
@@ -48,6 +51,41 @@ class AuthViewModel: ObservableObject {
         }
     }
     
+    func handleAuthError(_ error: Error) {
+        let nsError = error as NSError
+        
+        // Debug full error details
+        print("DEBUG: Full error details:")
+        print("  - Domain: \(nsError.domain)")
+        print("  - Code: \(nsError.code)")
+        print("  - Description: \(nsError.localizedDescription)")
+        print("  - User Info: \(nsError.userInfo)")
+        
+        // Correctly map Firebase auth errors
+        if nsError.domain == AuthErrorDomain {
+            if let errorCode = AuthErrorCode(rawValue: nsError.code) {
+                let mappedError = AuthError(authErrorCode: errorCode)
+                self.authError = mappedError
+                
+                print("DEBUG: Mapped Firebase error code \(errorCode.rawValue) to AuthError.\(String(describing: mappedError))")
+            } else {
+                print("DEBUG: Unrecognized Firebase auth error code: \(nsError.code)")
+                self.authError = .unknown
+            }
+        } else {
+            // For non-Firebase auth errors
+            if nsError.domain == NSURLErrorDomain {
+                print("DEBUG: Network error detected")
+                self.authError = .networkError
+            } else {
+                print("DEBUG: Non-Firebase auth error domain: \(nsError.domain)")
+                self.authError = .unknown
+            }
+        }
+        
+        print("DEBUG: Final auth error: \(String(describing: self.authError))")
+    }
+    
     // MARK: - Fetch User by ID
     func fetchUser(withID userID: String) async {
         do {
@@ -68,18 +106,34 @@ class AuthViewModel: ObservableObject {
     func signIn(withEmail email: String, password: String) async throws {
         isLoading = true
         print("DEBUG: Signing in with email: \(email)")
-          
+        
+        // Check network connectivity first
+        if !NetworkMonitor.shared.isConnected {
+            isLoading = false
+            self.authError = .networkError
+            self.showAlert = true
+            
+            // Also show in the global network banner
+            AppEnvironment.shared.errorMessage = "Cannot sign in while offline. Please check your connection and try again."
+            AppEnvironment.shared.showNetworkError = true
+            
+            throw NSError(domain: "AuthError", code: -1009, userInfo: [NSLocalizedDescriptionKey: "No internet connection available."])
+        }
+        
         do {
             let result = try await Auth.auth().signIn(withEmail: email, password: password)
             self.userSession = result.user
+
+            // Fetch user details
             await fetchUser(withID: result.user.uid)
+
             print("DEBUG: Sign-in successful, user ID: \(result.user.uid)")
         } catch {
             print("DEBUG: Failed to sign in: \(error.localizedDescription)")
-//            handleAuthError(error)
+            handleAuthError(error)
             isLoading = false // Reset loading state when an error occurs
-//            self.showAlert = true // Show the alert
-//            throw error
+            self.showAlert = true // Show the alert
+            throw error
         }
         isLoading = false
     }
@@ -87,6 +141,19 @@ class AuthViewModel: ObservableObject {
     func registerUser(withName fullname: String, withEmail email: String, withPassword password: String) async throws{
         isLoading = true
         print("DEBUG: Signing in with email: \(email)")
+        
+        // Check network connectivity first
+        if !NetworkMonitor.shared.isConnected {
+            isLoading = false
+            self.authError = .networkError
+            self.showAlert = true
+            
+            // Also show in the global network banner
+            AppEnvironment.shared.errorMessage = "Cannot create account while offline. Please check your connection and try again."
+            AppEnvironment.shared.showNetworkError = true
+            
+            throw NSError(domain: "AuthError", code: -1009, userInfo: [NSLocalizedDescriptionKey: "No internet connection available."])
+        }
         
         do{
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
@@ -110,7 +177,9 @@ class AuthViewModel: ObservableObject {
         } catch{
             print("DEBUG: Failed to register: \(error.localizedDescription)")
             isLoading = false
-//            throw error
+            handleAuthError(error)
+            self.showAlert = true
+            throw error
         }
         isLoading = false
     }
@@ -125,7 +194,6 @@ class AuthViewModel: ObservableObject {
             throw error
         }
     }
-    
     
     func signOut() {
         do {

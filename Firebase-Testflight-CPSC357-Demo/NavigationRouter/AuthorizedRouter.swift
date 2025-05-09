@@ -10,7 +10,7 @@ import SwiftUI
 
 enum authorizedRouter: Routable, Equatable {
     case home
-//    case profile
+    case community
     
     @ViewBuilder
     func viewToDisplay(router: Router<Self>) -> some View {
@@ -18,8 +18,8 @@ enum authorizedRouter: Routable, Equatable {
         switch self {
         case .home:
             ContentView()
-//        case .profile:
-//            ProfileView()
+        case .community:
+            CommunityView()
         }
     }
 

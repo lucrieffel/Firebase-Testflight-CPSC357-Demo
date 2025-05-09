@@ -98,6 +98,13 @@ struct RegistrationView: View {
                     Button {
                         Task {
                             do {
+                                // Check network connectivity first
+                                if !NetworkMonitor.shared.isConnected {
+                                    AppEnvironment.shared.errorMessage = "Cannot create account while offline. Please check your connection and try again."
+                                    AppEnvironment.shared.showNetworkError = true
+                                    return
+                                }
+                                
                                 isLoading = true
                                 // Trim spaces only for the email field
                                 let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -159,6 +166,22 @@ struct RegistrationView: View {
                 }
             }
         )
+        .alert(isPresented: .init(
+            get: { AppEnvironment.shared.authViewModel.showAlert },
+            set: { AppEnvironment.shared.authViewModel.showAlert = $0 }
+        )) {
+            Alert(title: Text(AppEnvironment.shared.authViewModel.authError?.title ?? "Registration Error"),
+                  message: Text(AppEnvironment.shared.authViewModel.authError?.description ?? "An unknown error occurred."),
+                  dismissButton: .default(Text("OK")))
+        }
+        .onAppear {
+            // Check network connectivity when view appears
+            if !NetworkMonitor.shared.isConnected {
+                // Display warning about offline registration limitations
+                AppEnvironment.shared.errorMessage = "Account registration requires internet connection."
+                AppEnvironment.shared.showNetworkError = true
+            }
+        }
     }
 }
 
@@ -187,10 +210,4 @@ private func isValidPassword(_ password: String) -> Bool {
 private func isValidFullName(_ name: String) -> Bool {
     // Full name should contain at least two words
     return name.split(separator: " ").count >= 2
-}
-
-
-
-#Preview {
-    RegistrationView()
 }
