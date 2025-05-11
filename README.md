@@ -44,7 +44,6 @@ A comprehensive open-source template for developing full-stack iOS applications 
 - **Swift** & **SwiftUI** - Core development
 - **Firebase** - Authentication, Firestore, Storage, Analytics
 - **Swift Data** - Local persistence
-- **Combine** - Reactive programming
 
 ## 📋 Requirements
 
